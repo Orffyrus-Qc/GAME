@@ -22,16 +22,35 @@
 # FR: Combien de gaz vous avez définis ci-dessous (1 ou 2 maximum, à cause des limites de l'unité de filtration)
 define GAS_COUNT 2
 
-# EN: Available gas ratios (use exact names from analyzer):
-# FR: Ratios de gaz disponibles (utilisez les noms exacts de l'analyseur) :
-#   RatioOxygen
-#   RatioNitrogen
-#   RatioCarbonDioxide
-#   RatioVolatiles
-#   RatioPollutant
-#   RatioWater
-#   RatioNitrousOxide
-#   RatioHydrogen
+# =============================================
+# COMPLETE LIST OF ALL KNOWN GASES (as of latest Stationeers major update)
+# =============================================
+#
+# Use these exact strings for GAS1 / GAS2 when reading from analyzers:
+#
+#   "RatioOxygen"
+#   "RatioNitrogen"
+#   "RatioCarbonDioxide"
+#   "RatioVolatiles"
+#   "RatioPollutant"
+#   "RatioWater"
+#   "RatioNitrousOxide"
+#   "RatioHydrogen"
+#
+# Corresponding hash names (use HASH("GasX") for advanced gas operations):
+#
+#   HASH("GasOxygen")
+#   HASH("GasNitrogen")
+#   HASH("GasCarbonDioxide")
+#   HASH("GasVolatiles")
+#   HASH("GasPollutant")
+#   HASH("GasWater")
+#   HASH("GasNitrousOxide")
+#   HASH("GasHydrogen")
+#
+# Note: Always use the Ratio strings (e.g. "RatioOxygen") with this script
+#       when using lbn on a Gas Analyzer device.
+# =============================================
 
 define GAS1 "RatioOxygen"
 define GAS2 "RatioVolatiles"          # Comment this line out if you only want to monitor 1 gas
@@ -118,3 +137,4 @@ j main
 end:
 yield
 j main
+
