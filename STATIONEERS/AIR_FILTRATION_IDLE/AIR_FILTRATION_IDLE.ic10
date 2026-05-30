@@ -1,28 +1,22 @@
 ﻿# AIR_FILTRATION_IDLE.ic10
-# Controls StructureFiltration based on up to 2 gases from a Pipe Analyzer.
-# Activates only if at least REQUIRED_COUNT gases are above threshold.
+# Controls StructureFiltration. Activates if at least one of two gases is present.
 
-# === CONFIG (edit these) ===
+# === CONFIG ===
 define GAS_COUNT 2
-define GAS1 "RatioOxygen"
-define GAS2 "RatioVolatiles"   # comment out if using only 1 gas
-define REQUIRED_COUNT 2
+define GAS1 HASH("GasOxygen")
+define GAS2 HASH("GasVolatiles")
 define THRESHOLD 0.05
 define FILTRATION_LABEL "AIR_FILTRATION"
 define ANALYZER_LABEL "PIPE_ANALYZER"
 define MODE_IDLE 0
 define MODE_ACTIVE 1
 
-# === END CONFIG ===
-
-# Gas ratios (use these strings with analyzers):
-# RatioOxygen, RatioNitrogen, RatioCarbonDioxide, RatioVolatiles,
-# RatioPollutant, RatioWater, RatioNitrousOxide, RatioHydrogen
-#
-# Hash versions (for advanced gas ops):
+# Gas hash list (for reference):
 # HASH("GasOxygen"), HASH("GasNitrogen"), HASH("GasCarbonDioxide"),
 # HASH("GasVolatiles"), HASH("GasPollutant"), HASH("GasWater"),
 # HASH("GasNitrousOxide"), HASH("GasHydrogen")
+
+# === END CONFIG ===
 
 alias gasCount r0
 alias shouldActivate r1
@@ -48,7 +42,7 @@ slt isAbove tempRatio THRESHOLD
 not isAbove isAbove
 add gasCount gasCount isAbove
 
-slt shouldActivate gasCount REQUIRED_COUNT
+slt shouldActivate gasCount 1
 not shouldActivate shouldActivate
 
 lbn currentMode d1 FILTRATION_LABEL "Mode"
