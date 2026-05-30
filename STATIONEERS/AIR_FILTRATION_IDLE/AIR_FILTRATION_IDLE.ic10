@@ -4,7 +4,6 @@
 
 # === CONFIG (edit these) ===
 define GAS_COUNT 2
-# See README for full list of gas ratio names
 define GAS1 "RatioOxygen"
 define GAS2 "RatioVolatiles"   # comment out if using only 1 gas
 define REQUIRED_COUNT 2
@@ -15,6 +14,15 @@ define MODE_IDLE 0
 define MODE_ACTIVE 1
 
 # === END CONFIG ===
+
+# Gas ratios (use these strings with analyzers):
+# RatioOxygen, RatioNitrogen, RatioCarbonDioxide, RatioVolatiles,
+# RatioPollutant, RatioWater, RatioNitrousOxide, RatioHydrogen
+#
+# Hash versions (for advanced gas ops):
+# HASH("GasOxygen"), HASH("GasNitrogen"), HASH("GasCarbonDioxide"),
+# HASH("GasVolatiles"), HASH("GasPollutant"), HASH("GasWater"),
+# HASH("GasNitrousOxide"), HASH("GasHydrogen")
 
 alias gasCount r0
 alias shouldActivate r1
