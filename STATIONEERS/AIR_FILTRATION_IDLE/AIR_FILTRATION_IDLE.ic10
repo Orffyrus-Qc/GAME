@@ -1,0 +1,98 @@
+﻿# AIR_FILTRATION_IDLE.ic10
+#
+# EN: Controls a StructureFiltration (Air Filtration) unit based on gas detection.
+# FR: Contrôle une unité StructureFiltration (Filtration d'air) selon la détection de gaz.
+#
+# EN: Uses a StructurePipeAnalysizer (Pipe Gas Analyzer) to check for two specific gases.
+# FR: Utilise un StructurePipeAnalysizer (Analyseur de gaz de tuyau) pour vérifier deux gaz spécifiques.
+#
+# EN: If both selected gases are detected above the threshold, sets the filtration to Active.
+# FR: Si les deux gaz sélectionnés sont détectés au-dessus du seuil, passe la filtration en mode Actif.
+# EN: Otherwise, sets it to Idle.
+# FR: Sinon, la met en mode Idle.
+#
+# EN: Edit the two gases at the top of the script (from the list below).
+# FR: Modifiez les deux gaz en haut du script (dans la liste ci-dessous).
+
+# =============================================
+# CONFIGURATION - EDIT THESE VALUES
+# =============================================
+
+# EN: Available gas ratios (use exact names from analyzer):
+# FR: Ratios de gaz disponibles (utilisez les noms exacts de l'analyseur) :
+#   RatioOxygen
+#   RatioNitrogen
+#   RatioCarbonDioxide
+#   RatioVolatiles
+#   RatioPollutant
+#   RatioWater
+#   RatioNitrousOxide
+#   RatioHydrogen (if available in your version)
+
+define GAS1 "RatioOxygen"          # First gas to monitor
+define GAS2 "RatioVolatiles"       # Second gas to monitor
+
+define THRESHOLD 0.05              # Minimum ratio (0.05 = 5%) for a gas to be considered "present"
+
+# EN: Device labels (set these labels in Stationeers on the devices)
+# FR: Étiquettes des appareils (définissez ces étiquettes dans Stationeers)
+define FILTRATION_LABEL "AIR_FILTRATION"      # Label on your StructureFiltration device
+define ANALYZER_LABEL   "PIPE_ANALYZER"       # Label on your StructurePipeAnalysizer
+
+# EN: Mode values for StructureFiltration (may need adjustment depending on your game version)
+# FR: Valeurs de mode pour StructureFiltration (peut nécessiter un ajustement selon votre version du jeu)
+define MODE_IDLE  0
+define MODE_ACTIVE 1
+
+# =============================================
+# END OF CONFIGURATION
+# =============================================
+
+# Device type hashes (for reference)
+define FILTRATION_TYPE HASH("StructureFiltration")
+define ANALYZER_TYPE   HASH("StructurePipeAnalysizer")
+
+# Working registers
+alias gas1Ratio r0
+alias gas2Ratio r1
+alias shouldActivate r2
+alias currentMode r3
+
+init:
+# EN: Force initial state check on boot
+yield
+
+main:
+# EN: Read the two selected gas ratios from the pipe analyzer
+lbn gas1Ratio d0 ANALYZER_LABEL GAS1
+lbn gas2Ratio d1 ANALYZER_LABEL GAS2
+
+# EN: Check if both gases are above the threshold
+slt r4 gas1Ratio THRESHOLD
+slt r5 gas2Ratio THRESHOLD
+or shouldActivate r4 r5
+not shouldActivate shouldActivate   # shouldActivate = 1 only if BOTH gases are present
+
+# EN: Read current mode of the filtration unit (if supported)
+lbn currentMode d2 FILTRATION_LABEL "Mode"
+
+# EN: Set the mode based on detection
+beq shouldActivate 1 activate
+j idle
+
+activate:
+beq currentMode MODE_ACTIVE skipWrite
+s d2 FILTRATION_LABEL "Mode" MODE_ACTIVE
+j end
+
+idle:
+beq currentMode MODE_IDLE skipWrite
+s d2 FILTRATION_LABEL "Mode" MODE_IDLE
+
+skipWrite:
+yield
+j main
+
+end:
+yield
+j main
