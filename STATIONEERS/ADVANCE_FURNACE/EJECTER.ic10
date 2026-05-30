@@ -1,0 +1,86 @@
+# Required label:
+# ADVANCED_FURNACE = Advanced Furnace
+# AUTO-EJECT = ModularDeviceBigLever
+# AUTO-EJECT = ModularDeviceLabelDiode3
+define FURNACE_TYPE HASH("StructureAdvancedFurnace")
+define FURNACE_NAME HASH("ADVANCED_FURNACE")
+define EJECT_SWITCH_TYPE HASH("ModularDeviceBigLever")
+define EJECT_SWITCH_NAME HASH("AUTO-EJECT")
+define AUTO_EJECT_TYPE HASH("ModularDeviceLabelDiode3")
+define AUTO_EJECT_NAME HASH("AUTO-EJECT")
+define C_BLUE 0
+define C_YELLOW 5
+
+# ===== BASIC =====
+define R_COPPER     HASH("ItemCopperIngot")
+define R_GOLD       HASH("ItemGoldIngot")
+define R_IRON       HASH("ItemIronIngot")
+define R_LEAD       HASH("ItemLeadIngot")
+define R_NICKEL     HASH("ItemNickelIngot")
+define R_SILICON    HASH("ItemSiliconIngot")
+define R_SILVER     HASH("ItemSilverIngot")
+
+# ===== ALLOY =====
+define R_STEEL      HASH("ItemSteelIngot")
+define R_ELECTRUM   HASH("ItemElectrumIngot")
+define R_SOLDER     HASH("ItemSolderIngot")
+define R_CONSTANTAN HASH("ItemConstantanIngot")
+define R_INVAR      HASH("ItemInvarIngot")
+
+# ===== SUPER ALLOY =====
+define R_ASTROLOY   HASH("ItemAstroloyIngot")
+define R_HASTELLOY  HASH("ItemHastelloyIngot")
+define R_INCONEL    HASH("ItemInconelIngot")
+define R_STELLITE   HASH("ItemStelliteIngot")
+define R_WASPALOY   HASH("ItemWaspaloyIngot")
+
+start:
+    sbn FURNACE_TYPE FURNACE_NAME Open 0
+
+loop:
+    # Read eject enable lever and update indicator color.
+    lbn r1 EJECT_SWITCH_TYPE EJECT_SWITCH_NAME Open Maximum
+    beq r1 0 autoEjectOff
+    sbn AUTO_EJECT_TYPE AUTO_EJECT_NAME Color C_BLUE
+
+    # Get current recipe running in furnace.
+    lbn r0 FURNACE_TYPE FURNACE_NAME RecipeHash Maximum
+
+    # ===== BASIC =====
+   # beq r0 R_COPPER eject
+   # beq r0 R_GOLD eject
+   # beq r0 R_IRON eject
+   # beq r0 R_LEAD eject
+   # beq r0 R_NICKEL eject
+   # beq r0 R_SILICON eject
+   # beq r0 R_SILVER eject
+
+    # ===== ALLOY =====
+    # beq r0 R_STEEL eject
+    beq r0 R_ELECTRUM eject
+    beq r0 R_SOLDER eject
+    beq r0 R_CONSTANTAN eject
+    beq r0 R_INVAR eject
+
+    # ===== SUPER ALLOY =====
+    beq r0 R_ASTROLOY eject
+    beq r0 R_HASTELLOY eject
+    beq r0 R_INCONEL eject
+    beq r0 R_STELLITE eject
+    beq r0 R_WASPALOY eject
+
+close:
+    sbn FURNACE_TYPE FURNACE_NAME Open 0
+    yield
+    j loop
+
+autoEjectOff:
+    sbn AUTO_EJECT_TYPE AUTO_EJECT_NAME Color C_YELLOW
+    j close
+
+eject:
+    sbn FURNACE_TYPE FURNACE_NAME Open 1
+    yield
+    sbn FURNACE_TYPE FURNACE_NAME Open 0
+    yield
+    j loop

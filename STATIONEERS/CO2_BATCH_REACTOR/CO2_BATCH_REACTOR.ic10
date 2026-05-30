@@ -1,0 +1,115 @@
+# CO2_BATCH_REACTOR.ic10
+# Fill/spark IC. Run with CO2_BATCH_REACTOR_EXHAUST.ic10.
+define GAS_SENSOR_TYPE HASH("StructureGasSensor")
+define ANALYZER_TYPE HASH("StructurePipeAnalysizer")
+define VALVE_TYPE HASH("StructureDigitalValve")
+define IGNITER_TYPE HASH("StructureIgniter")
+define MEMORY_TYPE HASH("StructureLogicMemory")
+define CHAMBER_SENSOR HASH("CO2_REACTOR_SENSOR")
+define CH4_VALVE HASH("CH4_VALVE")
+define O2_VALVE HASH("O2_VALVE")
+define IGNITER_NAME HASH("CO2_IGNITER")
+define PHASE_MEM HASH("CO2_REACTOR_PHASE")
+define TARGET_CH4_KPA 2
+define TARGET_O2_KPA 1
+define EMPTY_KPA 0.25
+define MAX_CH4_RATIO 0.005
+define MIN_CO2_RATIO 0.20
+define PHASE_READY 0
+define PHASE_FILL 1
+define PHASE_EXHAUST 2
+define ST_FILL_CH4 1
+define ST_FILL_O2 2
+define ST_SPARK 3
+define ST_BURN 4
+alias pressure r0
+alias ch4Ratio r1
+alias o2Ratio r2
+alias co2Ratio r3
+alias ch4Partial r4
+alias o2Partial r5
+alias burning r6
+alias phase r7
+alias chamberRef r8
+alias state r15
+init:
+move state 0
+sbn MEMORY_TYPE PHASE_MEM Setting PHASE_EXHAUST
+j off_loop
+main:
+yield
+jal read_chamber
+ble chamberRef ninf off_loop
+mul ch4Partial pressure ch4Ratio
+mul o2Partial pressure o2Ratio
+beq state ST_FILL_CH4 fill_ch4
+beq state ST_FILL_O2 fill_o2
+beq state ST_SPARK spark
+beq state ST_BURN wait_burn
+move state 0
+jal off
+lbn phase MEMORY_TYPE PHASE_MEM Setting Average
+ble phase ninf main
+bne phase PHASE_READY main
+bgt pressure EMPTY_KPA main
+sbn MEMORY_TYPE PHASE_MEM Setting PHASE_FILL
+move state ST_FILL_CH4
+j main
+read_chamber:
+lbn chamberRef GAS_SENSOR_TYPE CHAMBER_SENSOR ReferenceId Maximum
+bgt chamberRef ninf load_chamber
+lbn chamberRef ANALYZER_TYPE CHAMBER_SENSOR ReferenceId Maximum
+ble chamberRef ninf return_chamber
+load_chamber:
+ld pressure chamberRef Pressure
+ld ch4Ratio chamberRef RatioMethane
+ld o2Ratio chamberRef RatioOxygen
+ld co2Ratio chamberRef RatioCarbonDioxide
+ld burning chamberRef Combustion
+return_chamber:
+j ra
+off_loop:
+jal off
+j main
+off:
+sbn VALVE_TYPE CH4_VALVE On 0
+sbn VALVE_TYPE O2_VALVE On 0
+sbn IGNITER_TYPE IGNITER_NAME On 0
+sbn IGNITER_TYPE IGNITER_NAME Activate 0
+j ra
+fill_ch4:
+jal off
+sbn VALVE_TYPE CH4_VALVE On 1
+blt ch4Partial TARGET_CH4_KPA main
+sbn VALVE_TYPE CH4_VALVE On 0
+move state ST_FILL_O2
+j main
+fill_o2:
+jal off
+sbn VALVE_TYPE O2_VALVE On 1
+blt o2Partial TARGET_O2_KPA main
+sbn VALVE_TYPE O2_VALVE On 0
+move state ST_SPARK
+j main
+spark:
+jal off
+sbn IGNITER_TYPE IGNITER_NAME On 1
+sbn IGNITER_TYPE IGNITER_NAME Activate 1
+yield
+sbn IGNITER_TYPE IGNITER_NAME On 0
+sbn IGNITER_TYPE IGNITER_NAME Activate 0
+move state ST_BURN
+j main
+wait_burn:
+jal off
+bgt burning 0 main
+bgt ch4Ratio MAX_CH4_RATIO spark
+bgt co2Ratio MIN_CO2_RATIO exhaust_start
+bgt pressure EMPTY_KPA exhaust_start
+sbn MEMORY_TYPE PHASE_MEM Setting PHASE_READY
+move state 0
+j main
+exhaust_start:
+sbn MEMORY_TYPE PHASE_MEM Setting PHASE_EXHAUST
+move state 0
+j main

@@ -1,0 +1,89 @@
+define sensor       HASH("StructureGasSensor")
+define display      HASH("ModularDeviceLEDdisplay2")
+define button       HASH("ModularDeviceUtilityButton2x2")
+define valve        HASH("StructureDigitalValve")
+define sensorName   HASH("SENSOR")
+define displayName  HASH("DISPLAY")
+define hotValveName HASH("HOT_DIGITAL_VALVE")
+define coldName     HASH("COLD_DIGITAL_VALVE")
+define upName       HASH("+")
+define downName     HASH("-")
+define minTemp      -59
+define maxTemp      59
+define kelvin       273.15
+define showTime     4
+define pressLock    2
+define enableHeat   1
+define enableCool   1
+alias target   r0
+alias curr     r1
+alias timer    r2
+alias upLock   r3
+alias downLock r4
+alias tmp      r5
+alias hyst     r6
+alias heatOn   r7
+alias coolOn   r8
+init:
+    move target 22
+    move hyst 1.0
+    sbn display displayName On 1
+    sbn display displayName Mode 0
+main:
+    lbn curr sensor sensorName Temperature Average
+    sub curr curr kelvin
+    sub upLock upLock 1
+    sub downLock downLock 1
+    lbn tmp button upName Activate Sum
+    blt tmp 0.5 upReleased
+    move timer showTime
+    bgt upLock 0 noUp
+        add target target 1
+        move upLock pressLock
+    j noUp
+upReleased:
+    move upLock 0
+noUp:
+    lbn tmp button downName Activate Sum
+    blt tmp 0.5 downReleased
+    move timer showTime
+    bgt downLock 0 noDown
+        sub target target 1
+        move downLock pressLock
+    j noDown
+downReleased:
+    move downLock 0
+noDown:
+    max target target minTemp
+    min target target maxTemp
+
+show:
+    bgt timer 0 showTarget
+    round tmp curr
+    sbn display displayName Setting tmp
+    j control
+
+showTarget:
+    round tmp target
+    sbn display displayName Setting tmp
+    sub timer timer 1
+control:
+    move heatOn 0
+    move coolOn 0
+    sub tmp target hyst
+    blt curr tmp doHeat
+    add tmp target hyst
+    bgt curr tmp doCool
+    j writeValves
+
+doHeat:
+    move heatOn enableHeat
+    j writeValves
+doCool:
+    move coolOn enableCool
+writeValves:
+    sbn valve hotValveName On heatOn
+    sbn valve coldName On coolOn
+end:
+    yield
+    j main

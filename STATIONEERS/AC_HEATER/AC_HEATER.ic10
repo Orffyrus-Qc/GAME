@@ -1,0 +1,76 @@
+# AC_HEATER.ic10
+# EN: Put this IC10 chip in the Air Conditioner to watch.
+# FR: Mettre cette puce IC10 dans le climatiseur a surveiller.
+# EN: It follows AC Mode 1 Active and drives pipe heaters named HEATER.
+# FR: Il suit le Mode 1 Actif et controle les chauffages nommes HEATER.
+# EN: High TemperatureOutput2 in Celsius locks heaters off until cooled.
+# FR: TemperatureOutput2 en Celsius bloque jusqu'au refroidissement.
+
+# EN: Pipe heater prefab hash and label/name hash.
+# FR: Hash du prefab et du nom/etiquette du chauffage.
+define HEATER_TYPE HASH("StructurePipeHeater")
+define HEATER_NAME HASH("HEATER")
+
+# EN: Air Conditioner modes and Celsius output temperature limits.
+# FR: Modes du climatiseur et limites TemperatureOutput2 en Celsius.
+define MODE_ACTIVE 1
+define TEMP_STOP_C 200
+define TEMP_RESUME_C 180
+define KELVIN_OFFSET 273.15
+
+# EN: Working registers.
+# FR: Registres de travail.
+alias acMode r0
+alias heaterOn r1
+alias lastOn r2
+alias outputTempC r3
+alias tempLock r4
+
+init:
+# EN: -1 forces one write after boot to match the current AC mode.
+# FR: -1 force une ecriture au demarrage selon le mode actuel.
+move lastOn -1
+move tempLock 0
+
+main:
+# EN: Read Mode and TemperatureOutput2 from the host Air Conditioner.
+# FR: Lire Mode et TemperatureOutput2 du climatiseur qui contient l'IC.
+l acMode db Mode
+l outputTempC db TemperatureOutput2
+
+# EN: Convert TemperatureOutput2 from Kelvin to Celsius.
+# FR: Convertir TemperatureOutput2 de Kelvin en Celsius.
+sub outputTempC outputTempC KELVIN_OFFSET
+
+# EN: Lock heaters off above 200 C; unlock at 180 C or lower.
+# FR: Bloquer au-dessus de 200 C; debloquer a 180 C ou moins.
+bgt outputTempC TEMP_STOP_C lockHot
+ble outputTempC TEMP_RESUME_C unlockCool
+j checkMode
+
+lockHot:
+move tempLock 1
+j checkMode
+
+unlockCool:
+move tempLock 0
+
+checkMode:
+# EN: Heater follows AC Active mode unless the temperature lock is set.
+# FR: Chauffage suit le mode Actif sauf si le verrou temperature est actif.
+seq heaterOn acMode MODE_ACTIVE
+beq tempLock 0 writeState
+move heaterOn 0
+
+writeState:
+# EN: Write only when the requested state changes.
+# FR: Ecrire seulement quand l'etat demande change.
+beq heaterOn lastOn wait
+sbn HEATER_TYPE HEATER_NAME On heaterOn
+move lastOn heaterOn
+
+wait:
+# EN: Yield every tick to keep the IC responsive.
+# FR: Yield a chaque tick pour garder l'IC reactive.
+yield
+j main

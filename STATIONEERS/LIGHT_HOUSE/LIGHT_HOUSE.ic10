@@ -1,0 +1,96 @@
+define lightType HASH("StructureLightLongWide")
+define switchName HASH("LIGHTHOUSE_SWITCH")
+define switchType HASH("StructureLogicSwitch2")
+define leverType HASH("StructureLogicSwitch")
+define LightCount 20
+define BeamWidth 4
+define StepAdvance 4
+alias switchPin d0
+alias nameIndex r0
+alias beamIndex r1
+alias phase r2
+alias switchState r3
+alias leverState r4
+alias systemOn r5
+alias pinPresent r6
+alias jumpOffset r7
+sb lightType On 0
+move phase 0
+main:
+jal readSwitch
+ble systemOn 0 systemOff
+sb lightType On 0
+move beamIndex 0
+beamLoop:
+add nameIndex phase beamIndex
+mod nameIndex nameIndex LightCount
+jal writeOn
+add beamIndex beamIndex 1
+blt beamIndex BeamWidth beamLoop
+add phase phase StepAdvance
+mod phase phase LightCount
+yield
+j main
+systemOff:
+sb lightType On 0
+sleep 1
+j main
+readSwitch:
+move systemOn 0
+sdse pinPresent switchPin
+beq pinPresent 0 namedSwitch
+bdnvl switchPin Setting namedSwitch
+l systemOn switchPin Setting
+sgtz systemOn systemOn
+j ra
+namedSwitch:
+lbn switchState switchType switchName Setting Maximum
+sgtz switchState switchState
+lbn leverState leverType switchName Setting Maximum
+sgtz leverState leverState
+max systemOn switchState leverState
+j ra
+writeOn:
+mul jumpOffset nameIndex 2
+add jumpOffset jumpOffset 1
+jr jumpOffset
+sbn lightType HASH("LIGHT_01") On 1
+j ra
+sbn lightType HASH("LIGHT_02") On 1
+j ra
+sbn lightType HASH("LIGHT_03") On 1
+j ra
+sbn lightType HASH("LIGHT_04") On 1
+j ra
+sbn lightType HASH("LIGHT_05") On 1
+j ra
+sbn lightType HASH("LIGHT_06") On 1
+j ra
+sbn lightType HASH("LIGHT_07") On 1
+j ra
+sbn lightType HASH("LIGHT_08") On 1
+j ra
+sbn lightType HASH("LIGHT_09") On 1
+j ra
+sbn lightType HASH("LIGHT_10") On 1
+j ra
+sbn lightType HASH("LIGHT_11") On 1
+j ra
+sbn lightType HASH("LIGHT_12") On 1
+j ra
+sbn lightType HASH("LIGHT_13") On 1
+j ra
+sbn lightType HASH("LIGHT_14") On 1
+j ra
+sbn lightType HASH("LIGHT_15") On 1
+j ra
+sbn lightType HASH("LIGHT_16") On 1
+j ra
+sbn lightType HASH("LIGHT_17") On 1
+j ra
+sbn lightType HASH("LIGHT_18") On 1
+j ra
+sbn lightType HASH("LIGHT_19") On 1
+j ra
+sbn lightType HASH("LIGHT_20") On 1
+j ra

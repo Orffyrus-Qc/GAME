@@ -1,0 +1,119 @@
+# Required labels:
+# SEED_SUPPLYER = Chute Export Bin controlled by START and STOP.
+# START = Utility button. Turns SEED_SUPPLYER on.
+# STOP = Utility button. Turns SEED_SUPPLYER off.
+# MANUAL = Utility button. Sends one clear pulse to stackers.
+# AUTO   = Utility button. Toggles automatic stacker clearing every 300 seconds.
+# Vider and Empileurs = Label Diode 3 auto-mode indicators.
+# Planter = Label Diode 3 SEED_SUPPLYER on/off indicator.
+define BUTTON_TYPE HASH("ModularDeviceUtilityButton2x2")
+define DIODE_TYPE HASH("ModularDeviceLabelDiode3")
+define START_BUTTON HASH("START")
+define STOP_BUTTON HASH("STOP")
+define MANUAL_BUTTON HASH("MANUAL")
+define AUTO_BUTTON HASH("AUTO")
+define VIDER_DIODE HASH("Vider")
+define EMPILEUR_DIODE HASH("Empileurs")
+define PLANTER_DIODE HASH("Planter")
+define CHUTE_EXPORT_BIN_TYPE HASH("StructureChuteExportBin")
+define SEED_SUPPLYER HASH("SEED_SUPPLYER")
+define STACKER_TYPE HASH("StructureStacker")
+define STACKER_REVERSE_TYPE HASH("StructureStackerReverse")
+define AUTO_INTERVAL_SECONDS 300
+define STACKER_CLEAR_SECONDS 1
+define POLL_SECONDS 0.25
+define BLUE 0
+define GREEN 2
+define RED 4
+define YELLOW 5
+alias chuteOn r0
+alias autoMode r1
+alias autoTimer r2
+alias manualPressed r3
+alias autoPressed r4
+alias manualLock r5
+alias autoLock r6
+alias autoColor r7
+alias chuteColor r8
+alias startPressed r9
+alias stopPressed r10
+init:
+jal readChuteState
+move autoMode 0
+move autoTimer 0
+move manualLock 0
+move autoLock 0
+jal writeChuteState
+jal resetStackers
+main:
+checkStartButton:
+lbn startPressed BUTTON_TYPE START_BUTTON Activate Sum
+bnan startPressed checkStopButton
+blt startPressed 0.5 checkStopButton
+move chuteOn 1
+jal writeChuteState
+checkStopButton:
+lbn stopPressed BUTTON_TYPE STOP_BUTTON Activate Sum
+bnan stopPressed checkManualButton
+blt stopPressed 0.5 checkManualButton
+move chuteOn 0
+jal writeChuteState
+checkManualButton:
+lbn manualPressed BUTTON_TYPE MANUAL_BUTTON Activate Sum
+bnan manualPressed manualReleased
+blt manualPressed 0.5 manualReleased
+bgt manualLock 0 checkAutoButton
+jal clearStackers
+move manualLock 1
+j checkAutoButton
+manualReleased:
+move manualLock 0
+checkAutoButton:
+lbn autoPressed BUTTON_TYPE AUTO_BUTTON Activate Sum
+bnan autoPressed autoReleased
+blt autoPressed 0.5 autoReleased
+bgt autoLock 0 checkAutoTimer
+seqz autoMode autoMode
+move autoTimer 0
+move autoLock 1
+j checkAutoTimer
+autoReleased:
+move autoLock 0
+checkAutoTimer:
+beqz autoMode loopPause
+add autoTimer autoTimer POLL_SECONDS
+blt autoTimer AUTO_INTERVAL_SECONDS loopPause
+move autoTimer 0
+jal clearStackers
+loopPause:
+jal writeChuteState
+jal writeIndicators
+sleep POLL_SECONDS
+j main
+readChuteState:
+lbn chuteOn CHUTE_EXPORT_BIN_TYPE SEED_SUPPLYER On Maximum
+bnan chuteOn chuteMissing
+sgtz chuteOn chuteOn
+j ra
+chuteMissing:
+move chuteOn 0
+j ra
+writeIndicators:
+select autoColor autoMode BLUE YELLOW
+select chuteColor chuteOn GREEN RED
+sbn DIODE_TYPE VIDER_DIODE Color autoColor
+sbn DIODE_TYPE EMPILEUR_DIODE Color autoColor
+sbn DIODE_TYPE PLANTER_DIODE On 1
+sbn DIODE_TYPE PLANTER_DIODE Color chuteColor
+j ra
+writeChuteState:
+sbn CHUTE_EXPORT_BIN_TYPE SEED_SUPPLYER On chuteOn
+j ra
+clearStackers:
+sb STACKER_TYPE Activate 1
+sb STACKER_REVERSE_TYPE Activate 1
+sleep STACKER_CLEAR_SECONDS
+resetStackers:
+sb STACKER_TYPE Activate 0
+sb STACKER_REVERSE_TYPE Activate 0
+j ra
