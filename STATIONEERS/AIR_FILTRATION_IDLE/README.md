@@ -4,11 +4,11 @@ IC10 script to automatically switch a `StructureFiltration` (Air Filtration unit
 
 ## Features
 
-- Monitor **up to 8 gases** at the same time.
-- Flexible activation logic using `REQUIRED_COUNT`.
+- Monitor **up to 16 gases** at the same time.
+- Extremely flexible activation logic using `REQUIRED_COUNT`.
 - Only activates the air filtration when enough of the selected gases are detected.
 - Keeps the unit in Idle mode when conditions are not met (saves power).
-- Easy to configure at the top of the script.
+- Designed to be easy to scale as new gases are added in future Stationeers updates.
 
 ## Required Devices & Labels
 
@@ -22,43 +22,50 @@ IC10 script to automatically switch a `StructureFiltration` (Air Filtration unit
 1. Place an IC10 chip programmed with this script into any IC socket.
 2. Label your **Air Filtration** unit `AIR_FILTRATION`.
 3. Label your **Pipe Gas Analyzer** `PIPE_ANALYZER`.
-4. Edit the configuration section at the top of the script (see below).
-5. Optionally adjust `THRESHOLD` and `REQUIRED_COUNT`.
+4. Edit the configuration section at the top of the script.
+5. Adjust `GAS_COUNT`, `REQUIRED_COUNT`, and `THRESHOLD` as needed.
 
 ## Configuration
 
-### 1. Define your gases (up to 8)
+### 1. Set how many gases you're using
 
 ```ic10
-define GAS_COUNT 3
+define GAS_COUNT 5
+```
 
+### 2. Define your gases (up to 16)
+
+```ic10
 define GAS1 "RatioOxygen"
 define GAS2 "RatioVolatiles"
 define GAS3 "RatioCarbonDioxide"
-# define GAS4 "RatioPollutant"
-# ... up to GAS8
+define GAS4 "RatioPollutant"
+define GAS5 "RatioWater"
+# define GAS6 "..."
+# ... up to GAS16
 ```
 
-### 2. Set how many gases are required
+### 3. Set the activation threshold
 
 ```ic10
 define REQUIRED_COUNT 2
 ```
 
-**Examples of `REQUIRED_COUNT` usage:**
+**Common `REQUIRED_COUNT` strategies:**
 
-- `REQUIRED_COUNT = 1` → Activate if **any** of the selected gases is present.
-- `REQUIRED_COUNT = 2` → Activate only if **at least 2** of the selected gases are present (very common).
-- `REQUIRED_COUNT = 3` → Activate only if **at least 3** gases match.
-- `REQUIRED_COUNT = GAS_COUNT` → Activate only if **all** selected gases are present.
+- `1` → Activate on **any** dangerous or desired gas
+- `2` or `3` → Activate only when multiple concerning gases appear together
+- `GAS_COUNT` → Activate only when **all** monitored gases meet the criteria
 
-### 3. Set detection sensitivity
+### 4. Detection sensitivity
 
 ```ic10
-define THRESHOLD 0.05   # 5% minimum concentration
+define THRESHOLD 0.05   # 5%
 ```
 
-## Available Gases (Latest Stationeers)
+## Available Gases
+
+Current common gases in Stationeers (add new ones as the game updates):
 
 - `RatioOxygen`
 - `RatioNitrogen`
@@ -71,49 +78,57 @@ define THRESHOLD 0.05   # 5% minimum concentration
 
 ## How It Works
 
-1. The script reads all the gases you defined from the `PIPE_ANALYZER`.
-2. It counts how many of them are above the `THRESHOLD`.
-3. If `count >= REQUIRED_COUNT` → sets the `AIR_FILTRATION` to **Active** mode.
-4. Otherwise → sets the filtration unit to **Idle** mode.
+1. The script reads every gas you have defined.
+2. It counts how many of them are currently above the `THRESHOLD`.
+3. If the count is **greater than or equal to** `REQUIRED_COUNT`, the air filtration is set to **Active**.
+4. Otherwise it is set to **Idle**.
 
-This gives you very precise control over when expensive air filtration should run.
+This system scales very well whether you're watching 2 gases or 12.
 
-## Configuration Examples
+## Practical Examples
 
-**Example 1: Activate on any dangerous gas**
+**Monitor many possible contaminants, activate on any 2:**
 ```ic10
-define GAS_COUNT 4
+define GAS_COUNT 8
 define GAS1 "RatioVolatiles"
 define GAS2 "RatioCarbonDioxide"
 define GAS3 "RatioPollutant"
 define GAS4 "RatioNitrousOxide"
-define REQUIRED_COUNT 1
-```
-
-**Example 2: Activate only when both Oxygen and Volatiles are high**
-```ic10
-define GAS_COUNT 2
-define GAS1 "RatioOxygen"
-define GAS2 "RatioVolatiles"
+define GAS5 "RatioWater"
+define GAS6 "..."
+define GAS7 "..."
+define GAS8 "..."
 define REQUIRED_COUNT 2
 ```
 
-**Example 3: Activate when at least 2 out of 4 monitored gases are present**
+**Very strict: Only run filtration when 4 specific gases are all present**
 ```ic10
 define GAS_COUNT 4
 define GAS1 "RatioOxygen"
 define GAS2 "RatioVolatiles"
 define GAS3 "RatioCarbonDioxide"
 define GAS4 "RatioPollutant"
-define REQUIRED_COUNT 2
+define REQUIRED_COUNT 4   # Must have all 4
+```
+
+**Simple "any bad gas" mode (great for general air cleaning)**
+```ic10
+define GAS_COUNT 6
+define GAS1 "RatioVolatiles"
+define GAS2 "RatioCarbonDioxide"
+define GAS3 "RatioPollutant"
+define GAS4 "RatioNitrousOxide"
+define GAS5 "RatioWater"
+define GAS6 "RatioHydrogen"
+define REQUIRED_COUNT 1
 ```
 
 ## Notes & Tips
 
-- The script is designed to be very easy to customize at the top.
-- If your version of Stationeers uses a different property than `Mode` for the filtration unit (e.g. `On` or `Setting`), you can change the `s` instructions easily.
+- The unrolled checks (GAS1 through GAS16) are easy to enable by uncommenting blocks.
+- If your filtration device uses a different control property than `Mode`, you can change the `s` lines at the bottom.
+- 16 gases is more than enough for current and near-future Stationeers versions.
 - Works with a single IC10 chip.
-- Safe for continuous operation.
 
 ## Author
 

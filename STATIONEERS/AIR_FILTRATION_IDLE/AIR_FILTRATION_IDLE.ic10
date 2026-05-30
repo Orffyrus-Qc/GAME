@@ -18,8 +18,8 @@
 # CONFIGURATION - EDIT THESE VALUES
 # =============================================
 
-# EN: How many gases you have defined below (1 to 8)
-# FR: Combien de gaz vous avez définis ci-dessous (1 à 8)
+# EN: How many gases you have defined below (1 to 16)
+# FR: Combien de gaz vous avez définis ci-dessous (1 à 16)
 define GAS_COUNT 3
 
 # EN: Available gas ratios (use exact names from analyzer):
@@ -31,23 +31,33 @@ define GAS_COUNT 3
 #   RatioPollutant
 #   RatioWater
 #   RatioNitrousOxide
-#   RatioHydrogen (if available in your version)
+#   RatioHydrogen
+#   (and any future gases added in major updates)
 
 define GAS1 "RatioOxygen"
 define GAS2 "RatioVolatiles"
 define GAS3 "RatioCarbonDioxide"
 # define GAS4 "RatioPollutant"
-# define GAS5 "..."
-# define GAS6 "..."
-# define GAS7 "..."
+# define GAS5 "RatioWater"
+# define GAS6 "RatioNitrousOxide"
+# define GAS7 "RatioHydrogen"
 # define GAS8 "..."
+# define GAS9 "..."
+# define GAS10 "..."
+# define GAS11 "..."
+# define GAS12 "..."
+# define GAS13 "..."
+# define GAS14 "..."
+# define GAS15 "..."
+# define GAS16 "..."
 
 # EN: Minimum number of the above gases that must be detected above THRESHOLD to activate.
 # FR: Nombre minimum des gaz ci-dessus qui doivent être détectés au-dessus de THRESHOLD pour activer.
 # EN: Examples:
 # FR: Exemples :
-#   REQUIRED_COUNT = 1 → Activate if ANY of the gases is present
-#   REQUIRED_COUNT = 2 → Activate if at least 2 of the gases are present (recommended for most cases)
+#   REQUIRED_COUNT = 1  → Activate if ANY of the gases is present
+#   REQUIRED_COUNT = 2  → Activate if at least 2 of the gases are present
+#   REQUIRED_COUNT = 3  → Activate if at least 3 of the gases are present
 #   REQUIRED_COUNT = GAS_COUNT → Activate only if ALL selected gases are present
 
 define REQUIRED_COUNT 2
@@ -86,29 +96,70 @@ yield
 main:
 move gasCount 0
 
-# EN: Check GAS1
+# =============================================
+# GAS DETECTION CHECKS (unrolled for performance and clarity)
+# =============================================
+
+# --- Gas 1 ---
 lbn tempRatio d0 ANALYZER_LABEL GAS1
 slt isAbove tempRatio THRESHOLD
 not isAbove isAbove
 add gasCount gasCount isAbove
 
-# EN: Check GAS2
+# --- Gas 2 ---
 lbn tempRatio d0 ANALYZER_LABEL GAS2
 slt isAbove tempRatio THRESHOLD
 not isAbove isAbove
 add gasCount gasCount isAbove
 
-# EN: Check GAS3
+# --- Gas 3 ---
 lbn tempRatio d0 ANALYZER_LABEL GAS3
 slt isAbove tempRatio THRESHOLD
 not isAbove isAbove
 add gasCount gasCount isAbove
 
-# EN: Check GAS4 (uncomment and add more if needed)
+# --- Gas 4 ---
 # lbn tempRatio d0 ANALYZER_LABEL GAS4
 # slt isAbove tempRatio THRESHOLD
 # not isAbove isAbove
 # add gasCount gasCount isAbove
+
+# --- Gas 5 ---
+# lbn tempRatio d0 ANALYZER_LABEL GAS5
+# slt isAbove tempRatio THRESHOLD
+# not isAbove isAbove
+# add gasCount gasCount isAbove
+
+# --- Gas 6 ---
+# lbn tempRatio d0 ANALYZER_LABEL GAS6
+# slt isAbove tempRatio THRESHOLD
+# not isAbove isAbove
+# add gasCount gasCount isAbove
+
+# --- Gas 7 ---
+# lbn tempRatio d0 ANALYZER_LABEL GAS7
+# slt isAbove tempRatio THRESHOLD
+# not isAbove isAbove
+# add gasCount gasCount isAbove
+
+# --- Gas 8 ---
+# lbn tempRatio d0 ANALYZER_LABEL GAS8
+# slt isAbove tempRatio THRESHOLD
+# not isAbove isAbove
+# add gasCount gasCount isAbove
+
+# --- Gas 9 to 16 (uncomment as needed) ---
+# lbn tempRatio d0 ANALYZER_LABEL GAS9
+# slt isAbove tempRatio THRESHOLD
+# not isAbove isAbove
+# add gasCount gasCount isAbove
+#
+# lbn tempRatio d0 ANALYZER_LABEL GAS10
+# slt isAbove tempRatio THRESHOLD
+# not isAbove isAbove
+# add gasCount gasCount isAbove
+#
+# (repeat the same 4-line block for GAS11 through GAS16)
 
 # EN: Check if we have enough gases detected
 slt shouldActivate gasCount REQUIRED_COUNT
