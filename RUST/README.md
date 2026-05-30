@@ -21,7 +21,7 @@ This script provides a "set and forget" experience for hosting Rust servers (inc
 ## Quick Start
 
 1. Place the script in its own folder (e.g. `C:\Rust_Server\`).
-2. Run `_OrffyRUST_v1.8.9.bat` as Administrator.
+2. Run `OrffyRUST_v1.8.9.bat` as Administrator.
 3. The script will:
    - Download/install SteamCMD + Rust server files into a `_rust` subfolder
    - Create the auto-restart helper
@@ -40,7 +40,7 @@ This script provides a "set and forget" experience for hosting Rust servers (inc
 
 ```
 C:\Rust_Server\
-├── _OrffyRUST_v1.8.9.bat
+├── OrffyRUST_v1.8.9.bat
 ├── autoRestart.bat          (generated)
 ├── focusServerWindow.vbs    (generated)
 └── _rust\                   (created by script - contains RustDedicated.exe + server data)
@@ -61,3 +61,4 @@ For the latest version or modifications, contact the author or check updates in 
 ---
 
 **Warning:** Running game servers requires a stable machine, good network, and proper firewall/router configuration (port forwarding for 28015/28016/28017 if public).
+
