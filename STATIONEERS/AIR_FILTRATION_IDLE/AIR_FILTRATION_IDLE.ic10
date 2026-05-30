@@ -1,17 +1,17 @@
 ﻿# AIR_FILTRATION_IDLE.ic10
-# Controls StructureFiltration. Activates if at least one of two gases is present.
+# Place this IC inside the StructureFiltration unit (uses db).
+# Activates filtration if at least one of two gases is present.
 
 # === CONFIG ===
 define GAS_COUNT 2
 define GAS1 HASH("GasPollutant")
 define GAS2 HASH("GasWater")
 define THRESHOLD 0.05
-define FILTRATION_LABEL "AIR_FILTRATION"
 define ANALYZER_LABEL "PIPE_ANALYZER"
 define MODE_IDLE 0
 define MODE_ACTIVE 1
 
-# Gas hash list (for reference):
+# Gas hashes:
 # HASH("GasOxygen"), HASH("GasNitrogen"), HASH("GasCarbonDioxide"),
 # HASH("GasVolatiles"), HASH("GasPollutant"), HASH("GasWater"),
 # HASH("GasNitrousOxide"), HASH("GasHydrogen")
@@ -45,19 +45,19 @@ add gasCount gasCount isAbove
 slt shouldActivate gasCount 1
 not shouldActivate shouldActivate
 
-lbn currentMode d1 FILTRATION_LABEL "Mode"
+lbn currentMode db "Mode"
 
 beq shouldActivate 1 activate
 j idle
 
 activate:
 beq currentMode MODE_ACTIVE skip
-s d1 FILTRATION_LABEL "Mode" MODE_ACTIVE
+s db "Mode" MODE_ACTIVE
 j end
 
 idle:
 beq currentMode MODE_IDLE skip
-s d1 FILTRATION_LABEL "Mode" MODE_IDLE
+s db "Mode" MODE_IDLE
 
 skip:
 yield
