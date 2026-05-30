@@ -51,7 +51,9 @@ If the amount of **Gas 1** or **Gas 2** is above `THRESHOLD`, the filtration uni
 - Uses only gas hashes (no Ratio strings).
 - Designed for the real limitation of the filtration unit (max 2 gases).
 - Works with a single IC10 chip.
+- The IC10 chip must be placed **directly inside** the StructureFiltration unit (it uses db). Do **not** place it in a separate IC10 housing.
 
 ## Author
 
 Created for Orffyrus's Stationeers collection.
+
