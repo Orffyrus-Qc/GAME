@@ -3,8 +3,8 @@
 
 # === CONFIG ===
 define GAS_COUNT 2
-define GAS1 HASH("GasOxygen")
-define GAS2 HASH("GasVolatiles")
+define GAS1 HASH("GasPollutant")
+define GAS2 HASH("GasWater")
 define THRESHOLD 0.05
 define FILTRATION_LABEL "AIR_FILTRATION"
 define ANALYZER_LABEL "PIPE_ANALYZER"
