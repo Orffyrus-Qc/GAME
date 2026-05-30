@@ -3,20 +3,24 @@
 # EN: Controls a StructureFiltration (Air Filtration) unit based on gas detection.
 # FR: Contrôle une unité StructureFiltration (Filtration d'air) selon la détection de gaz.
 #
-# EN: Uses a StructurePipeAnalysizer (Pipe Gas Analyzer) to check for two specific gases.
-# FR: Utilise un StructurePipeAnalysizer (Analyseur de gaz de tuyau) pour vérifier deux gaz spécifiques.
+# EN: Uses a StructurePipeAnalysizer (Pipe Gas Analyzer) to check for multiple specific gases.
+# FR: Utilise un StructurePipeAnalysizer (Analyseur de gaz de tuyau) pour vérifier plusieurs gaz spécifiques.
 #
-# EN: If both selected gases are detected above the threshold, sets the filtration to Active.
-# FR: Si les deux gaz sélectionnés sont détectés au-dessus du seuil, passe la filtration en mode Actif.
-# EN: Otherwise, sets it to Idle.
-# FR: Sinon, la met en mode Idle.
+# EN: Activates the filtration only when at least REQUIRED_COUNT of the selected gases
+# FR: Active la filtration uniquement lorsque au moins REQUIRED_COUNT des gaz sélectionnés
+# EN: are detected above the threshold.
+# FR: sont détectés au-dessus du seuil.
 #
-# EN: Edit the two gases at the top of the script (from the list below).
-# FR: Modifiez les deux gaz en haut du script (dans la liste ci-dessous).
+# EN: Edit the gas list and REQUIRED_COUNT at the top of the script.
+# FR: Modifiez la liste des gaz et REQUIRED_COUNT en haut du script.
 
 # =============================================
 # CONFIGURATION - EDIT THESE VALUES
 # =============================================
+
+# EN: How many gases you have defined below (1 to 8)
+# FR: Combien de gaz vous avez définis ci-dessous (1 à 8)
+define GAS_COUNT 3
 
 # EN: Available gas ratios (use exact names from analyzer):
 # FR: Ratios de gaz disponibles (utilisez les noms exacts de l'analyseur) :
@@ -29,8 +33,24 @@
 #   RatioNitrousOxide
 #   RatioHydrogen (if available in your version)
 
-define GAS1 "RatioOxygen"          # First gas to monitor
-define GAS2 "RatioVolatiles"       # Second gas to monitor
+define GAS1 "RatioOxygen"
+define GAS2 "RatioVolatiles"
+define GAS3 "RatioCarbonDioxide"
+# define GAS4 "RatioPollutant"
+# define GAS5 "..."
+# define GAS6 "..."
+# define GAS7 "..."
+# define GAS8 "..."
+
+# EN: Minimum number of the above gases that must be detected above THRESHOLD to activate.
+# FR: Nombre minimum des gaz ci-dessus qui doivent être détectés au-dessus de THRESHOLD pour activer.
+# EN: Examples:
+# FR: Exemples :
+#   REQUIRED_COUNT = 1 → Activate if ANY of the gases is present
+#   REQUIRED_COUNT = 2 → Activate if at least 2 of the gases are present (recommended for most cases)
+#   REQUIRED_COUNT = GAS_COUNT → Activate only if ALL selected gases are present
+
+define REQUIRED_COUNT 2
 
 define THRESHOLD 0.05              # Minimum ratio (0.05 = 5%) for a gas to be considered "present"
 
@@ -53,28 +73,49 @@ define FILTRATION_TYPE HASH("StructureFiltration")
 define ANALYZER_TYPE   HASH("StructurePipeAnalysizer")
 
 # Working registers
-alias gas1Ratio r0
-alias gas2Ratio r1
-alias shouldActivate r2
-alias currentMode r3
+alias gasCount r0
+alias shouldActivate r1
+alias currentMode r2
+alias tempRatio r3
+alias isAbove r4
 
 init:
 # EN: Force initial state check on boot
 yield
 
 main:
-# EN: Read the two selected gas ratios from the pipe analyzer
-lbn gas1Ratio d0 ANALYZER_LABEL GAS1
-lbn gas2Ratio d1 ANALYZER_LABEL GAS2
+move gasCount 0
 
-# EN: Check if both gases are above the threshold
-slt r4 gas1Ratio THRESHOLD
-slt r5 gas2Ratio THRESHOLD
-or shouldActivate r4 r5
-not shouldActivate shouldActivate   # shouldActivate = 1 only if BOTH gases are present
+# EN: Check GAS1
+lbn tempRatio d0 ANALYZER_LABEL GAS1
+slt isAbove tempRatio THRESHOLD
+not isAbove isAbove
+add gasCount gasCount isAbove
+
+# EN: Check GAS2
+lbn tempRatio d0 ANALYZER_LABEL GAS2
+slt isAbove tempRatio THRESHOLD
+not isAbove isAbove
+add gasCount gasCount isAbove
+
+# EN: Check GAS3
+lbn tempRatio d0 ANALYZER_LABEL GAS3
+slt isAbove tempRatio THRESHOLD
+not isAbove isAbove
+add gasCount gasCount isAbove
+
+# EN: Check GAS4 (uncomment and add more if needed)
+# lbn tempRatio d0 ANALYZER_LABEL GAS4
+# slt isAbove tempRatio THRESHOLD
+# not isAbove isAbove
+# add gasCount gasCount isAbove
+
+# EN: Check if we have enough gases detected
+slt shouldActivate gasCount REQUIRED_COUNT
+not shouldActivate shouldActivate
 
 # EN: Read current mode of the filtration unit (if supported)
-lbn currentMode d2 FILTRATION_LABEL "Mode"
+lbn currentMode d1 FILTRATION_LABEL "Mode"
 
 # EN: Set the mode based on detection
 beq shouldActivate 1 activate
@@ -82,12 +123,12 @@ j idle
 
 activate:
 beq currentMode MODE_ACTIVE skipWrite
-s d2 FILTRATION_LABEL "Mode" MODE_ACTIVE
+s d1 FILTRATION_LABEL "Mode" MODE_ACTIVE
 j end
 
 idle:
 beq currentMode MODE_IDLE skipWrite
-s d2 FILTRATION_LABEL "Mode" MODE_IDLE
+s d1 FILTRATION_LABEL "Mode" MODE_IDLE
 
 skipWrite:
 yield
