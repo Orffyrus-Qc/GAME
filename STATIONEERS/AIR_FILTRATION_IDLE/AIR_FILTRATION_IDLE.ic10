@@ -1,90 +1,21 @@
 ﻿# AIR_FILTRATION_IDLE.ic10
-#
-# EN: Controls a StructureFiltration (Air Filtration) unit based on gas detection.
-# FR: Contrôle une unité StructureFiltration (Filtration d'air) selon la détection de gaz.
-#
-# EN: Uses a StructurePipeAnalysizer (Pipe Gas Analyzer) to check for up to 2 specific gases.
-# FR: Utilise un StructurePipeAnalysizer (Analyseur de gaz de tuyau) pour vérifier jusqu'à 2 gaz spécifiques.
-#
-# EN: Activates the filtration only when at least REQUIRED_COUNT of the selected gases
-# FR: Active la filtration uniquement lorsque au moins REQUIRED_COUNT des gaz sélectionnés
-# EN: are detected above the threshold.
-# FR: sont détectés au-dessus du seuil.
-#
-# EN: Edit the gas list and REQUIRED_COUNT at the top of the script.
-# FR: Modifiez la liste des gaz et REQUIRED_COUNT en haut du script.
+# Controls StructureFiltration based on up to 2 gases from a Pipe Analyzer.
+# Activates only if at least REQUIRED_COUNT gases are above threshold.
 
-# =============================================
-# CONFIGURATION - EDIT THESE VALUES
-# =============================================
-
-# EN: How many gases you have defined below (1 or 2 max, due to filtration unit limits)
-# FR: Combien de gaz vous avez définis ci-dessous (1 ou 2 maximum, à cause des limites de l'unité de filtration)
+# === CONFIG (edit these) ===
 define GAS_COUNT 2
-
-# =============================================
-# COMPLETE LIST OF ALL KNOWN GASES (as of latest Stationeers major update)
-# =============================================
-#
-# Use these exact strings for GAS1 / GAS2 when reading from analyzers:
-#
-#   "RatioOxygen"
-#   "RatioNitrogen"
-#   "RatioCarbonDioxide"
-#   "RatioVolatiles"
-#   "RatioPollutant"
-#   "RatioWater"
-#   "RatioNitrousOxide"
-#   "RatioHydrogen"
-#
-# Corresponding hash names (use HASH("GasX") for advanced gas operations):
-#
-#   HASH("GasOxygen")
-#   HASH("GasNitrogen")
-#   HASH("GasCarbonDioxide")
-#   HASH("GasVolatiles")
-#   HASH("GasPollutant")
-#   HASH("GasWater")
-#   HASH("GasNitrousOxide")
-#   HASH("GasHydrogen")
-#
-# Note: Always use the Ratio strings (e.g. "RatioOxygen") with this script
-#       when using lbn on a Gas Analyzer device.
-# =============================================
-
+# See README for full list of gas ratio names
 define GAS1 "RatioOxygen"
-define GAS2 "RatioVolatiles"          # Comment this line out if you only want to monitor 1 gas
-
-# EN: Minimum number of the above gases that must be detected above THRESHOLD to activate.
-# FR: Nombre minimum des gaz ci-dessus qui doivent être détectés au-dessus de THRESHOLD pour activer.
-# EN: Examples:
-# FR: Exemples :
-#   REQUIRED_COUNT = 1 → Activate if ANY of the selected gases is present
-#   REQUIRED_COUNT = 2 → Activate only if BOTH selected gases are present
-
+define GAS2 "RatioVolatiles"   # comment out if using only 1 gas
 define REQUIRED_COUNT 2
-
-define THRESHOLD 0.05              # Minimum ratio (0.05 = 5%) for a gas to be considered "present"
-
-# EN: Device labels (set these labels in Stationeers on the devices)
-# FR: Étiquettes des appareils (définissez ces étiquettes dans Stationeers)
-define FILTRATION_LABEL "AIR_FILTRATION"      # Label on your StructureFiltration device
-define ANALYZER_LABEL   "PIPE_ANALYZER"       # Label on your StructurePipeAnalysizer
-
-# EN: Mode values for StructureFiltration (may need adjustment depending on your game version)
-# FR: Valeurs de mode pour StructureFiltration (peut nécessiter un ajustement selon votre version du jeu)
-define MODE_IDLE  0
+define THRESHOLD 0.05
+define FILTRATION_LABEL "AIR_FILTRATION"
+define ANALYZER_LABEL "PIPE_ANALYZER"
+define MODE_IDLE 0
 define MODE_ACTIVE 1
 
-# =============================================
-# END OF CONFIGURATION
-# =============================================
+# === END CONFIG ===
 
-# Device type hashes (for reference)
-define FILTRATION_TYPE HASH("StructureFiltration")
-define ANALYZER_TYPE   HASH("StructurePipeAnalysizer")
-
-# Working registers
 alias gasCount r0
 alias shouldActivate r1
 alias currentMode r2
@@ -92,49 +23,44 @@ alias tempRatio r3
 alias isAbove r4
 
 init:
-# EN: Force initial state check on boot
 yield
 
 main:
 move gasCount 0
 
-# --- Gas 1 ---
+# Gas 1
 lbn tempRatio d0 ANALYZER_LABEL GAS1
 slt isAbove tempRatio THRESHOLD
 not isAbove isAbove
 add gasCount gasCount isAbove
 
-# --- Gas 2 (only used if GAS_COUNT = 2) ---
+# Gas 2
 lbn tempRatio d0 ANALYZER_LABEL GAS2
 slt isAbove tempRatio THRESHOLD
 not isAbove isAbove
 add gasCount gasCount isAbove
 
-# EN: Check if we have enough gases detected
 slt shouldActivate gasCount REQUIRED_COUNT
 not shouldActivate shouldActivate
 
-# EN: Read current mode of the filtration unit (if supported)
 lbn currentMode d1 FILTRATION_LABEL "Mode"
 
-# EN: Set the mode based on detection
 beq shouldActivate 1 activate
 j idle
 
 activate:
-beq currentMode MODE_ACTIVE skipWrite
+beq currentMode MODE_ACTIVE skip
 s d1 FILTRATION_LABEL "Mode" MODE_ACTIVE
 j end
 
 idle:
-beq currentMode MODE_IDLE skipWrite
+beq currentMode MODE_IDLE skip
 s d1 FILTRATION_LABEL "Mode" MODE_IDLE
 
-skipWrite:
+skip:
 yield
 j main
 
 end:
 yield
 j main
-
