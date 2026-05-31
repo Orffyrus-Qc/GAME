@@ -154,17 +154,17 @@ See `AIR_FILTRATION_IDLE/README.md` for gas hash configuration and setup.
 
 ## Air Filtration Pressure Safety
 
-The `AIR_FILTRATION_PRESSURE/` folder contains an IC10 script that provides a
-hard pressure safety interlock. When the host device's `PressureOutput2`
-exceeds 15,000 kPa (15 MPa), it:
+The `AIR_FILTRATION_PRESSURE/` folder contains an IC10 script for high-pressure
+safety shutdown. When `PressureOutput2` (on the device the IC is in) reaches
+15,000 kPa / 15 MPa or higher, it:
 
-- Forces the host device (via `db`) to `Mode 0` + `On 0`
-- Forces all named `StructureFiltration` units (`FILTRATION`) to `Mode 0`
-- Forces all named `StructureIceCrusher` units (`CRUSHER`) to `On 0`
+- Sets `Mode 0` on the host device via `db` (safe for onboard IC use)
+- Sets `Mode 0` on all named `StructureFiltration` (`FILTRATION`)
+- Sets `On 0` on all named `StructureIceCrusher` (`CRUSHER`)
 
-Holds the safe state until pressure drops to 14.5 MPa (hysteresis).
+Safety releases at 14.5 MPa with hysteresis.
 
-See `AIR_FILTRATION_PRESSURE/README.md` for labels and setup.
+See the script README for important notes about pressure units (Pa vs kPa), labels, and common reasons it may not trigger.
 
 ## Solid Generator Control
 
