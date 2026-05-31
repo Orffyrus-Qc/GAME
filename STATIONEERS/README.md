@@ -142,6 +142,28 @@ lower after converting that output temperature to Celsius.
 See `AC_HEATER/README.md` for labels, mode behavior, temperature lockout, and
 setup notes.
 
+## Air Filtration Idle Control
+
+The `AIR_FILTRATION_IDLE/` folder contains an IC10 script placed inside a
+`StructureFiltration` unit. It automatically switches the unit between Idle and
+Active mode by monitoring up to two target gases via a named pipe gas analyzer
+(`PIPE_ANALYZER`). Only the gases the real filtration hardware supports are
+considered.
+
+See `AIR_FILTRATION_IDLE/README.md` for gas hash configuration and setup.
+
+## Air Filtration Pressure Safety
+
+The `AIR_FILTRATION_PRESSURE/` folder contains an IC10 script that provides a
+hard pressure safety interlock. It forces all `StructureFiltration` units named
+`FILTRATION` (on the data network) to Idle (`Mode 0`) when the host device's
+`PressureOutput2` exceeds 15 MPa, and holds them idle until pressure falls to
+14.5 MPa or lower (hysteresis). While pressure is safe the script does nothing,
+leaving normal control to levers, consoles, or other scripts.
+
+See `AIR_FILTRATION_PRESSURE/README.md` for labels, pressure values (in Pa),
+and installation.
+
 ## Solid Generator Control
 
 The `SOLID_GENERATOR/` folder contains IC10 scripts that control a solid fuel
@@ -203,7 +225,7 @@ chunks when you want smaller reference pieces for prompts and retrieval.
 Files:
 
 - `stationeers_ic10_codex_db.json` - full IC10 logic database.
-- `stationeers_ic10_codex_chunks.jsonl` - smaller retrieval chunks for prompts and script generation.
+- `stationeers_ic10_codex_chunks.jsonl` - smaller retrieval chunks for prompts and retrieval.
 - `manifest.codex.json` - database metadata and file counts.
 - `build_stationeers_logic_db.ps1` - script used to rebuild the database.
 
